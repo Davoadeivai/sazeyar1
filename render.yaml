@@ -1,9 +1,7 @@
-services:
-  - type: web
-    name: sazeyar
-    env: node
+staticSites:
+  - name: sazeyar
     buildCommand: npm install && npm run build
-    startCommand: npm run preview
+    publishPath: dist
     envVars:
       - key: NODE_VERSION
         value: 18
