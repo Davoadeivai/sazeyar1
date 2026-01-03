@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Layers, Eraser, Download, Share2 } from 'lucide-react';
+import { Camera, Layers, Eraser, Download, Share2, Upload } from 'lucide-react';
 
 const ARViewer: React.FC = () => {
     const [mode, setMode] = useState<'camera' | 'upload'>('upload');

@@ -1,0 +1,8 @@
+staticSites:
+  - name: sazeyar
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: "18"
+    autoDeploy: true

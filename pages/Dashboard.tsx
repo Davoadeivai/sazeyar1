@@ -1,72 +1,72 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { StorageService } from '../services/storageService';
-import { User, UserRole } from '../types';
-import { Settings, FolderPlus, Clock, LogOut, FileText, Gift, CreditCard, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { FolderGit2, MessageSquare, Clock, FileText, Gift, Settings, LogOut, FileCheck } from 'lucide-react';
 import LoyaltyBanner from '../components/LoyaltyBanner';
 
-// Mock Invoice Data
 const MOCK_INVOICES = [
-  { id: 1, number: 'INV-1402-101', date: '1402/10/15', amount: '150,000,000', status: 'PAID', project: 'بازسازی آشپزخانه' },
-  { id: 2, number: 'INV-1402-105', date: '1402/10/20', amount: '45,000,000', status: 'PENDING', project: 'لوله کشی و تاسیسات' },
+  { id: 1, number: 'INV-1403-102', project: 'بازسازی آشپزخانه', date: '۱۴۰۳/۱۰/۱۲', amount: '۴۵,۰۰۰,۰۰۰', status: 'PAID' },
+  { id: 2, number: 'INV-1403-105', project: 'طراحی کابینت', date: '۱۴۰۳/۱۰/۱۵', amount: '۱۲,۰۰۰,۰۰۰', status: 'PENDING' },
 ];
 
 const Dashboard: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'invoices' | 'loyalty'>('overview');
   const navigate = useNavigate();
+  const user = StorageService.getCurrentUser();
+  const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'invoices' | 'loyalty'>('overview');
 
-  useEffect(() => {
-    const currentUser = StorageService.getCurrentUser();
-    if (!currentUser) {
-      navigate('/login');
-    } else {
-      setUser(currentUser);
-    }
-  }, [navigate]);
-
-  if (!user) return null;
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row gap-8">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row gap-8">
 
           {/* Sidebar */}
-          <aside className="w-full md:w-64 flex-shrink-0">
+          <aside className="lg:w-64 flex-shrink-0">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
-              <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center font-bold text-lg">
                   {user.fullName.charAt(0)}
                 </div>
-                <h2 className="font-bold text-gray-900">{user.fullName}</h2>
-                <p className="text-xs text-gray-500 mt-1">
-                  {user.role === UserRole.HOMEOWNER ? 'کارفرما (صاحب خانه)' : 'متخصص'}
-                </p>
+                <div>
+                  <h2 className="font-bold text-gray-900 line-clamp-1">{user.fullName}</h2>
+                  <span className="text-xs text-gray-500 block mt-0.5">{user.role}</span>
+                </div>
               </div>
 
               <nav className="space-y-2">
                 <button
                   onClick={() => setActiveTab('overview')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-brand-50 text-brand-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
-                  <FolderPlus size={18} />
+                  <FolderGit2 size={18} />
+                  نمای کلی
+                </button>
+                <button
+                  onClick={() => setActiveTab('projects')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'projects' ? 'bg-brand-50 text-brand-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                >
+                  <FileCheck size={18} />
                   پروژه‌های من
                 </button>
                 <button
                   onClick={() => setActiveTab('invoices')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'invoices' ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'invoices' ? 'bg-brand-50 text-brand-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
                   <FileText size={18} />
-                  فاکتورها و مالی
+                  صورت‌حساب‌ها
                 </button>
                 <button
                   onClick={() => setActiveTab('loyalty')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'loyalty' ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'loyalty' ? 'bg-brand-50 text-brand-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
                   <Gift size={18} />
                   باشگاه مشتریان
                 </button>
+                <div className="h-px bg-gray-100 my-2"></div>
                 <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors">
                   <Settings size={18} />
                   تنظیمات حساب

@@ -1,127 +1,117 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Home, User, LogOut, ShieldCheck, Instagram, Send, MessageCircle, Heart, Sparkles, MapPin, Phone } from 'lucide-react';
 import { StorageService } from '../services/storageService';
-import { User as UserType, UserRole, SiteSettings } from '../types';
-
-// Default settings for initial render
-const defaultSettings: SiteSettings = {
-  instagramUrl: '#',
-  telegramUrl: '#',
-  whatsappUrl: '#',
-  enamadUrl: '#',
-  phoneNumber: '۰۲۱-۱۲۳۴۵۶۷۸',
-  address: 'تهران، ...'
-};
+import { Menu, X, Home, Briefcase, Phone, LogIn, User, Instagram, Send, MessageCircle, Heart, ShieldCheck, Sparkles, MapPin } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<UserType | null>(null);
-  const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
-  const location = useLocation();
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const user = StorageService.getCurrentUser();
+  const [settings, setSettings] = useState({
+    instagramUrl: '#',
+    telegramUrl: '#',
+    whatsappUrl: '#',
+    phoneNumber: '021-22000000',
+    address: 'تهران، خیابان ولیعصر، برج هرمس'
+  });
 
-  // Load user and settings
-  useEffect(() => {
-    setUser(StorageService.getCurrentUser());
-
-    // Load settings asynchronously
+  // Load site settings
+  React.useEffect(() => {
     const loadSettings = async () => {
       try {
-        const fetchedSettings = await StorageService.getSettings();
-        setSettings(fetchedSettings);
-      } catch (error) {
-        console.error('Error loading settings:', error);
-        // Keep default settings on error
+        const data = await StorageService.getSettings();
+        if (data) setSettings(data);
+      } catch (err) {
+        console.log("Using default settings");
       }
     };
     loadSettings();
-  }, [location.pathname]);
-
-  // Scroll effect for header
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogout = async () => {
-    await StorageService.logout();
-    navigate('/login');
-    setUser(null);
+  const handleLogout = () => {
+    StorageService.logout();
+    navigate('/');
   };
 
   const navLinks = [
-    { name: 'خانه', path: '/' },
-    { name: 'گالری پروژه‌ها', path: '/portfolio' },
-    { name: 'خدمات', path: '/services' },
-    { name: 'مشاور هوشمند', path: '/ai-consultant' },
+    { name: 'خانه', path: '/', icon: <Home size={20} /> },
+    { name: 'خدمات', path: '/services', icon: <Briefcase size={20} /> },
+    { name: 'نمونه کارها', path: '/portfolio', icon: <ShieldCheck size={20} /> },
+    { name: 'وبلاگ', path: '/blog', icon: <Briefcase size={20} /> }, // Added Blog Link
+    { name: 'مشاور هوشمند', path: '/ai-consultant', icon: <Sparkles size={20} /> },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-[#fdfbfc]">
-      {/* Header */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-lg shadow-sm py-2' : 'bg-transparent py-4'
-        }`}>
+    <div className="min-h-screen flex flex-col font-sans text-gray-800 bg-gray-50">
+
+      {/* Navbar */}
+      <header className="fixed w-full z-50 transition-all duration-300 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center h-20">
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="bg-gradient-to-br from-brand-500 to-happy-orange p-2.5 rounded-xl text-white shadow-lg shadow-brand-500/30 group-hover:rotate-6 transition-transform">
-                <Home size={24} strokeWidth={2.5} />
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="bg-brand-500 text-white p-2 rounded-xl group-hover:rotate-12 transition-transform">
+                <Home size={24} />
               </div>
-              <span className={`text-2xl font-black tracking-tighter ${scrolled ? 'text-gray-900' : 'text-gray-900'}`}>
-                هرمس <span className="text-brand-500">سازه سبز</span>
-              </span>
+              <div>
+                <span className="text-xl font-black text-gray-900 tracking-tight">هرمس سازه</span>
+                <span className="text-[10px] text-gray-500 block -mt-1 font-bold tracking-widest">HERMES SAZE SABZ</span>
+              </div>
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex gap-1 bg-white/50 backdrop-blur-md p-1.5 rounded-full border border-gray-100/50 shadow-sm">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${location.pathname === link.path
-                      ? 'bg-gray-900 text-white shadow-md transform scale-105'
-                      : 'text-gray-600 hover:text-brand-600 hover:bg-white'
-                    }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-1 bg-gray-100/50 p-1.5 rounded-2xl backdrop-blur-md">
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.path;
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${isActive
+                      ? 'bg-white text-brand-600 shadow-sm shadow-gray-200'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                      }`}
+                  >
+                    {isActive && link.icon}
+                    {link.name}
+                  </Link>
+                );
+              })}
             </nav>
 
-            {/* Auth Buttons */}
-            <div className="hidden md:flex items-center gap-4">
+            {/* User Actions */}
+            <div className="hidden md:flex items-center gap-3">
               {user ? (
-                <div className="flex items-center gap-3 bg-white pl-2 pr-4 py-1.5 rounded-full border border-gray-200 shadow-sm">
-                  <div className="flex flex-col items-end mr-2">
-                    <span className="text-xs font-bold text-gray-800">{user.fullName}</span>
-                    <span className="text-[10px] text-gray-500">{user.role === 'ADMIN' ? 'مدیر سیستم' : 'کاربر عادی'}</span>
-                  </div>
-                  {user.role === UserRole.ADMIN ? (
-                    <Link to="/admin" className="bg-red-50 text-red-500 p-2 rounded-full hover:bg-red-500 hover:text-white transition-all">
-                      <ShieldCheck size={18} />
-                    </Link>
-                  ) : (
-                    <Link to="/dashboard" className="bg-brand-50 text-brand-500 p-2 rounded-full hover:bg-brand-500 hover:text-white transition-all">
-                      <User size={18} />
-                    </Link>
-                  )}
-                  <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 p-1 transition-colors">
-                    <LogOut size={18} />
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-gray-700">
+                    سلام، {user.fullName.split(' ')[0]}
+                  </span>
+                  <Link
+                    to={user.role === 'ADMIN' ? '/admin' : '/dashboard'}
+                    className="bg-brand-50 text-brand-600 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-brand-100 transition-colors flex items-center gap-2"
+                  >
+                    <User size={18} />
+                    پنل کاربری
+                  </Link>
+                  <button onClick={handleLogout} className="bg-gray-100 p-2.5 rounded-xl hover:bg-red-50 hover:text-red-500 transition-colors">
+                    <LogIn size={20} />
                   </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
-                  <Link to="/login" className="text-gray-700 font-bold text-sm hover:text-brand-500 transition-colors">ورود</Link>
+                  <Link
+                    to="/login"
+                    className="text-gray-600 font-bold text-sm hover:text-gray-900 px-4 py-2"
+                  >
+                    ورود
+                  </Link>
                   <Link
                     to="/register"
                     className="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:bg-brand-500 hover:shadow-brand-500/30 transition-all flex items-center gap-2"

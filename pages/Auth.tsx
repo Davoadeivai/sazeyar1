@@ -1,104 +1,86 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { StorageService } from '../services/storageService';
 import { UserRole } from '../types';
-import { Loader2, AlertCircle, ShieldCheck, User, HardHat, ArrowRight, Home } from 'lucide-react';
+import { Eye, EyeOff, Loader2, AlertCircle, ArrowRight, User, HardHat, CheckCircle2 } from 'lucide-react';
 
 const Auth: React.FC = () => {
-    const location = useLocation();
     const navigate = useNavigate();
-    const isRegister = location.pathname === '/register';
-
+    const [isRegister, setIsRegister] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [formData, setFormData] = useState({
-        fullName: '',
         email: '',
         password: '',
+        fullName: '',
         role: UserRole.HOMEOWNER
     });
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
+        setError('');
 
         try {
             if (isRegister) {
-                if (!formData.fullName) throw new Error('نام کامل الزامی است');
-                await StorageService.registerUser({
-                    fullName: formData.fullName,
-                    email: formData.email,
-                    passwordHash: formData.password, // Mock hashing
-                    role: formData.role
-                });
+                await StorageService.registerUser(formData);
+                navigate('/dashboard'); // Direct navigation after register
             } else {
                 await StorageService.loginUser(formData.email, formData.password);
+                const user = StorageService.getCurrentUser();
+                if (user?.role === UserRole.ADMIN) {
+                    navigate('/admin');
+                } else {
+                    navigate('/dashboard');
+                }
             }
-
-            const currentUser = StorageService.getCurrentUser();
-            if (currentUser?.role === UserRole.ADMIN) {
-                navigate('/admin');
-            } else {
-                navigate('/dashboard');
-            }
-
         } catch (err: any) {
-            setError(err.message || 'خطایی رخ داده است');
+            console.error(err);
+            setError(err.message || 'خطایی رخ داده است. لطفا مجدد تلاش کنید.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex bg-white">
-            {/* Right Side - Image (Desktop Only) */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-brand-900">
-                <div
-                    className="absolute inset-0 w-full h-full bg-cover bg-center opacity-40 mix-blend-overlay hover:scale-105 transition-transform duration-[20s]"
-                    style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2531&auto=format&fit=crop")' }}
-                ></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-900 via-brand-900/40 to-transparent"></div>
-
-                <div className="relative z-10 p-16 flex flex-col justify-between h-full text-white">
-                    <Link to="/" className="flex items-center gap-3 w-fit group">
-                        <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl group-hover:bg-white/30 transition-colors">
-                            <Home size={28} />
-                        </div>
-                        <span className="text-2xl font-bold tracking-tight">هرمس سازه سبز</span>
-                    </Link>
-
-                    <div className="space-y-6">
-                        <h2 className="text-4xl font-bold leading-tight">
-                            {isRegister
-                                ? 'خانه رویایی خود را \n با ما بسازید'
-                                : 'خوشحالیم که دوباره \n شما را می‌بینیم'}
-                        </h2>
-                        <p className="text-blue-100 text-lg max-w-md leading-relaxed">
-                            به جامعه بزرگ متخصصین و کارفرمایان هرمس سازه سبز بپیوندید. ما کیفیت و اطمینان را در پروژه‌های ساختمانی شما تضمین می‌کنیم.
-                        </p>
-                    </div>
-
-                    <div className="text-sm text-blue-200">
-                        © ۱۴۰۳ تمامی حقوق محفوظ است.
-                    </div>
-                </div>
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 relative overflow-hidden">
+            {/* Background Decoration */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 translate-x-1/2 -translate-y-1/2"></div>
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -translate-x-1/2 translate-y-1/2"></div>
             </div>
 
-            {/* Left Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 overflow-y-auto">
-                <div className="w-full max-w-md space-y-8">
+            <div className="bg-white/80 backdrop-blur-xl w-full max-w-5xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row relative z-10 border border-white/50">
 
-                    {/* Mobile Header */}
-                    <div className="lg:hidden text-center mb-8">
-                        <Link to="/" className="inline-flex items-center gap-2 mb-6">
-                            <div className="bg-brand-500 p-2 rounded-lg text-white">
-                                <Home size={24} />
+                {/* Image Section */}
+                <div className="lg:w-1/2 relative min-h-[300px] lg:min-h-full">
+                    <img
+                        src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2000&auto=format&fit=crop"
+                        alt="Interior Design"
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-10 text-white">
+                        <div className="space-y-4">
+                            <h2 className="text-3xl font-bold leading-tight">خانه رویایی خود را <br />با هوش مصنوعی بسازید</h2>
+                            <p className="text-white/80 text-sm leading-relaxed">
+                                به جمع ۲۰۰۰+ کاربر هرمس بپیوندید و از مشاوره هوشمند، تخمین هزینه دقیق و تیم‌های اجرایی متخصص استفاده کنید.
+                            </p>
+                            <div className="flex gap-4 pt-2">
+                                <div className="flex items-center gap-1.5 text-xs font-medium bg-white/20 backdrop-blur px-3 py-1.5 rounded-full">
+                                    <CheckCircle2 size={14} className="text-brand-400" />
+                                    تخمین آنلاین
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs font-medium bg-white/20 backdrop-blur px-3 py-1.5 rounded-full">
+                                    <CheckCircle2 size={14} className="text-brand-400" />
+                                    مشاوره رایگان
+                                </div>
                             </div>
-                            <span className="text-xl font-bold text-gray-900">هرمس سازه سبز</span>
-                        </Link>
+                        </div>
                     </div>
+                </div>
 
+                {/* Form Section */}
+                <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
                     <div className="text-center lg:text-right space-y-2">
                         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
                             {isRegister ? 'ایجاد حساب کاربری' : 'ورود به حساب'}
@@ -167,8 +149,8 @@ const Auth: React.FC = () => {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, role: UserRole.HOMEOWNER })}
                                         className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${formData.role === UserRole.HOMEOWNER
-                                                ? 'border-brand-500 bg-brand-50 text-brand-700'
-                                                : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                                            ? 'border-brand-500 bg-brand-50 text-brand-700'
+                                            : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
                                             }`}
                                     >
                                         <User size={24} />
@@ -180,8 +162,8 @@ const Auth: React.FC = () => {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, role: UserRole.PROFESSIONAL })}
                                         className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${formData.role === UserRole.PROFESSIONAL
-                                                ? 'border-brand-500 bg-brand-50 text-brand-700'
-                                                : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                                            ? 'border-brand-500 bg-brand-50 text-brand-700'
+                                            : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
                                             }`}
                                     >
                                         <HardHat size={24} />

@@ -9,7 +9,7 @@ export const GeminiService = {
       console.error("Gemini API Key is not configured. Please set VITE_GEMINI_API_KEY in .env.local");
       return "🔑 کلید API تنظیم نشده. لطفا با پشتیبانی تماس بگیرید.";
     }
-    
+
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
     try {
       const parts: any[] = [{ text: prompt }];
@@ -45,7 +45,7 @@ export const GeminiService = {
           temperature: 0.7,
         }
       });
-      
+
       return response.text || "متاسفانه در حال حاضر قادر به تحلیل نیستم. لطفا دوباره تلاش کنید.";
     } catch (error) {
       console.error("Gemini API Error:", error);

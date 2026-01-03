@@ -1,56 +1,23 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Loader2, Mic, MicOff, Volume2, VolumeX, Paperclip, X, Image as ImageIcon, Video, Camera } from 'lucide-react';
+import { Send, Upload, Mic, MicOff, Camera, Loader2, Sparkles, User, Bot, Volume2, VolumeX, Image as ImageIcon, Video, X } from 'lucide-react';
 import { GeminiService } from '../services/geminiService';
-import { StorageService } from '../services/storageService';
 import { ChatMessage } from '../types';
 
-const AIConsultant = () => {
+const AIConsultant: React.FC = () => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const currentUser = StorageService.getCurrentUser();
-
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [currentlySpeaking, setCurrentlySpeaking] = useState(false);
   const [selectedFile, setSelectedFile] = useState<{ file: File; preview: string; type: 'image' | 'video' } | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
-
-  // Fix: Handle async call to getChatHistory correctly using await
-  useEffect(() => {
-    const fetchHistory = async () => {
-      if (currentUser) {
-        try {
-          const history = await StorageService.getChatHistory(currentUser.id);
-          setMessages(history.length > 0 ? history : [{
-            id: 'welcome',
-            role: 'model',
-            text: `سلام ${currentUser.fullName} عزیز! 👋 به دپارتمان هوش مصنوعی هرمس خوش آمدید. من می‌توانم عکس‌های محیط شما را تحلیل کنم و پیشنهادات مهندسی سبز بدهم. چطور می‌توانم کمکتان کنم؟`,
-            timestamp: Date.now()
-          }]);
-        } catch (error) {
-          console.error("Error loading chat history:", error);
-        }
-      } else {
-         setMessages([{
-            id: 'welcome_guest',
-            role: 'model',
-            text: 'سلام! من دستیار تخصصی هرمس سازه سبز هستم. عکسی از پروژه‌تان بفرستید تا با هم آنالیزش کنیم. ✨',
-            timestamp: Date.now()
-         }]);
-      }
-    };
-    fetchHistory();
-  }, []);
+  const [currentlySpeaking, setCurrentlySpeaking] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    if (currentUser && messages.length > 0) {
-        StorageService.saveChatHistory(currentUser.id, messages);
-    }
   }, [messages]);
 
   const toggleRecording = () => {
@@ -147,15 +114,13 @@ const AIConsultant = () => {
       <div className="flex-grow overflow-y-auto p-5 space-y-6 bg-gray-50/30">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-            <div className={`shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center shadow-md ${
-              msg.role === 'user' ? 'bg-gray-900 text-white' : 'bg-white text-brand-500 border border-brand-50'
-            }`}>
+            <div className={`shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center shadow-md ${msg.role === 'user' ? 'bg-gray-900 text-white' : 'bg-white text-brand-500 border border-brand-50'
+              }`}>
               {msg.role === 'user' ? <User size={18} /> : <Bot size={18} />}
             </div>
             <div className={`max-w-[85%] group ${msg.role === 'user' ? 'text-left' : 'text-right'}`}>
-              <div className={`p-4 rounded-[1.5rem] shadow-sm text-sm leading-relaxed ${
-                msg.role === 'user' ? 'bg-gray-900 text-white rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'
-              }`}>
+              <div className={`p-4 rounded-[1.5rem] shadow-sm text-sm leading-relaxed ${msg.role === 'user' ? 'bg-gray-900 text-white rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'
+                }`}>
                 {msg.text}
               </div>
               <span className="text-[10px] text-gray-400 mt-2 block px-1">
@@ -181,36 +146,36 @@ const AIConsultant = () => {
       {/* Input */}
       <div className="p-5 bg-white border-t border-gray-100">
         {selectedFile && (
-           <div className="mb-4 p-3 bg-gray-50 rounded-2xl flex items-center justify-between border border-gray-100 animate-in slide-in-from-bottom-2">
-              <div className="flex items-center gap-3">
-                 <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-200">
-                    {selectedFile.type === 'image' ? <img src={selectedFile.preview} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Video size={20}/></div>}
-                 </div>
-                 <p className="text-xs font-bold text-gray-600">آماده تحلیل دیداری</p>
+          <div className="mb-4 p-3 bg-gray-50 rounded-2xl flex items-center justify-between border border-gray-100 animate-in slide-in-from-bottom-2">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-200">
+                {selectedFile.type === 'image' ? <img src={selectedFile.preview} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center"><Video size={20} /></div>}
               </div>
-              <button onClick={() => setSelectedFile(null)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors"><X size={18} /></button>
-           </div>
+              <p className="text-xs font-bold text-gray-600">آماده تحلیل دیداری</p>
+            </div>
+            <button onClick={() => setSelectedFile(null)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors"><X size={18} /></button>
+          </div>
         )}
 
         <div className="flex items-center gap-2">
           <div className="relative flex-grow">
-             <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="سوال یا عکسی از محیط بفرستید..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 pr-14 pl-14 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all"
-             />
-             <button onClick={() => fileInputRef.current?.click()} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-brand-500 transition-colors">
-                <Camera size={20} />
-             </button>
-             <button onClick={toggleRecording} className={`absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-gray-400 hover:text-indigo-600'}`}>
-                {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
-             </button>
-             <input type="file" ref={fileInputRef} hidden accept="image/*,video/*" onChange={handleFileChange} />
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              placeholder="سوال یا عکسی از محیط بفرستید..."
+              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 pr-14 pl-14 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all"
+            />
+            <button onClick={() => fileInputRef.current?.click()} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-brand-500 transition-colors">
+              <Camera size={20} />
+            </button>
+            <button onClick={toggleRecording} className={`absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-gray-400 hover:text-indigo-600'}`}>
+              {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+            </button>
+            <input type="file" ref={fileInputRef} hidden accept="image/*,video/*" onChange={handleFileChange} />
           </div>
-          
+
           <button onClick={handleSend} disabled={loading || (!input.trim() && !selectedFile)} className="bg-gray-900 text-white p-4 rounded-2xl shadow-xl hover:bg-brand-600 disabled:opacity-50 transition-all">
             <Send size={20} className="rtl:rotate-180" />
           </button>
